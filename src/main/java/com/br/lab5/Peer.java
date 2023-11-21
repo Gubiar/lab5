@@ -12,15 +12,20 @@ import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
 
+@ManagedBean
+@RequestScoped
 public class Peer implements IMensagem{
-    
 	ArrayList<PeerLista> alocados;
-	
     public Peer() {
           alocados = new ArrayList<>();
     }
-    
-    //Cliente: invoca o metodo remoto 'enviar'
+
+	// Adicione este método getter para a lista de peers
+	public List<PeerLista> getAlocados() {
+		return alocados;
+	}
+
+	//Cliente: invoca o metodo remoto 'enviar'
     //Servidor: invoca o metodo local 'enviar'
     @Override
     public Mensagem enviar(Mensagem mensagem) throws RemoteException {
@@ -71,7 +76,6 @@ public class Peer implements IMensagem{
     public void iniciar(){
 
     try {
-    		//Adquire aleatoriamente um ID do PeerList
     		List<PeerLista> listaPeers = new ArrayList<>();
     		for( PeerLista peer : PeerLista.values())
     			listaPeers.add(peer);
@@ -79,10 +83,10 @@ public class Peer implements IMensagem{
     		Registry servidorRegistro;
     		try {
     			servidorRegistro = LocateRegistry.createRegistry(1099);
-    		} catch (java.rmi.server.ExportException e){ //Registro jah iniciado 
+    		} catch (java.rmi.server.ExportException e){
     			System.out.print("Registro jah iniciado. Usar o ativo.\n");
     		}
-    		servidorRegistro = LocateRegistry.getRegistry(); //Registro eh unico para todos os peers
+    		servidorRegistro = LocateRegistry.getRegistry();
     		String [] listaAlocados = servidorRegistro.list();
     		for(int i=0; i<listaAlocados.length;i++)
     			System.out.println(listaAlocados[i]+" ativo.");
@@ -97,39 +101,24 @@ public class Peer implements IMensagem{
     			repetido=false;    			
     			peer = listaPeers.get(sr.nextInt(listaPeers.size()));
     			for(int i=0; i<listaAlocados.length && !repetido; i++){
-    				
     				if(listaAlocados[i].equals(peer.getNome())){
     					System.out.println(peer.getNome() + " ativo. Tentando proximo...");
     					repetido=true;
     					tentativas=i+1;
     				}    			  
-    				
     			}
-    			//System.out.println(tentativas+" "+listaAlocados.length);
-    			    			
-    			//Verifica se o registro estah cheio (todos alocados)
-    			if(listaAlocados.length>0 && //Para o caso inicial em que nao ha servidor alocado,
-    					                     //caso contrario, o teste abaixo sempre serah true
-    				tentativas==listaPeers.size()){ 
+    			if(listaAlocados.length>0 && tentativas==listaPeers.size()){
     				cheio=true;
     			}
     		}
-    		
     		if(cheio){
     			System.out.println("Sistema cheio. Tente mais tarde.");
     			System.exit(1);
     		}
-    		
-            IMensagem skeleton  = (IMensagem) UnicastRemoteObject.exportObject(this, 0); //0: sistema operacional indica a porta (porta anonima)            
-            	
+            IMensagem skeleton  = (IMensagem) UnicastRemoteObject.exportObject(this, 0);
             servidorRegistro.rebind(peer.getNome(), skeleton);
-            System.out.print(peer.getNome() +" Servidor RMI: Aguardando conexoes...");
-                        
-            //---Cliente RMI
+            System.out.println(peer.getNome() +" Servidor RMI Disponível: Aguardando conexoes...");
             new ClienteRMI().iniciarCliente();
-            
-            
-            
         } catch(Exception e) {
             e.printStackTrace();
         }        
@@ -139,5 +128,6 @@ public class Peer implements IMensagem{
     public static void main(String[] args) {
         Peer servidor = new Peer();
         servidor.iniciar();
+		servidor.getAlocados();
     }    
 }

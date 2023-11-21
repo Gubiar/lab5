@@ -18,7 +18,7 @@ import java.util.Set;
 public class Principal {
 
 	public final static Path path = Paths
-			.get("src\\fortune-br.txt");
+			.get("src/main/java/com/br/lab5/fortune-br.txt");
 	private int NUM_FORTUNES = 0;
 
 	private FileReader fr; 
