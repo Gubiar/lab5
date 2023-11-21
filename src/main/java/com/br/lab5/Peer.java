@@ -12,8 +12,6 @@ import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
 
-@ManagedBean
-@RequestScoped
 public class Peer implements IMensagem{
 	ArrayList<PeerLista> alocados;
     public Peer() {
